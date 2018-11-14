@@ -1,0 +1,31 @@
+'use strict'
+const utils = require('./utils')
+const path = require('path');
+const fs = require('fs');
+const getPath = require('./getPath')();
+//基础配置
+const config = require(getPath.shellDirPath + '/configTest/config.js')({
+	getPath: getPath,
+	path: path,
+	fs: fs
+});
+const isProduction = process.env.NODE_ENV === 'production'
+const sourceMapEnabled = isProduction
+  ? config.build.productionSourceMap
+  : config.dev.cssSourceMap
+
+module.exports = {
+  loaders: utils.cssLoaders({
+    sourceMap: sourceMapEnabled,
+    extract: isProduction
+  }),
+  cssSourceMap: sourceMapEnabled,
+  cacheBusting: config.dev.cacheBusting,
+  transformToRequire: {
+    video: ['src', 'poster'],
+    source: 'src',
+    img: 'src',
+    image: 'xlink:href'
+  },
+  preserveWhitespace:false
+}
