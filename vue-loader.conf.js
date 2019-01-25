@@ -1,13 +1,12 @@
 'use strict'
-const utils = require('./utils')
+const utils = require('./utils');
 const path = require('path');
-const fs = require('fs');
-const getPath = require('./getPath')();
-//基础配置
-const config = require(getPath.shellDirPath + '/configTest/config.js')({
-	getPath: getPath,
-	path: path,
-	fs: fs
+const fs=require('fs');
+const getProjectPath = require('./get-project-path')();
+const config = require(getProjectPath.shellDirPath + '/config/index.js')({
+	projectPath:getProjectPath,
+	path:path,
+	fs:fs
 });
 const isProduction = process.env.NODE_ENV === 'production'
 const sourceMapEnabled = isProduction
@@ -17,7 +16,8 @@ const sourceMapEnabled = isProduction
 module.exports = {
   loaders: utils.cssLoaders({
     sourceMap: sourceMapEnabled,
-    extract: isProduction
+    extract: !!config.build.extract,
+    usePostCSS: true
   }),
   cssSourceMap: sourceMapEnabled,
   cacheBusting: config.dev.cacheBusting,
@@ -27,5 +27,8 @@ module.exports = {
     img: 'src',
     image: 'xlink:href'
   },
-  preserveWhitespace:false
+  preserveWhitespace: false,
+  postcss: isProduction ? function () {
+    return [require('postcss-salad')];
+  } : false
 }

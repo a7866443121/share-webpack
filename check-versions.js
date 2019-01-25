@@ -1,9 +1,7 @@
 'use strict'
 const chalk = require('chalk')
 const semver = require('semver')
-//自制路径插件
-const getPath = require('./getPath.js')();
-const packageConfig = require(getPath.shellDirPath +'/package.json')
+const packageConfig = require('../../package.json')
 const shell = require('shelljs')
 
 function exec (cmd) {

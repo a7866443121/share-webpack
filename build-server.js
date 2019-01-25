@@ -1,35 +1,41 @@
-const path = require('path')
-const fs = require('fs');
-const express = require('express');
+var path = require('path')
+const fs=require('fs');
+var express = require('express')
+// express接收'post'请求的参数处理插件
+// var bodyParser = require("body-parser")
+var proxyMiddleware = require('http-proxy-middleware')
+const getProjectPath = require('../build/get-project-path')();
+const config = require(getProjectPath.shellDirPath + '/config/index.js')({
+	projectPath:getProjectPath,
+	path:path,
+	fs:fs
+});
+var build = config.build
+var proxys = config.proxy
+
 var app = express()
-const proxyMiddleware = require('http-proxy-middleware');
-const getPath = require('./getPath')();
-//基础配置
-const config = require(getPath.shellDirPath + '/configTest/config.js')({
-	getPath: getPath,
-	path: path,
-	fs: fs
-});
+var port = 3001
 
-var build = config.build || {};
-var proxys = config.proxy || {};
-var port = config.port || 3001;
 
-Object.keys(proxys).forEach(val => {
-	var options = proxys[val];
-	if(typeof options === 'string'){
-		options = {
-			target: options,
-			onProxyReq: (proxyReq, req, res) => {
-				console.log(proxyReq)
-			}
-		}
-	}
-	app.use(proxyMiddleware(options.filter || val,options));
-});
+// 接口代理
+Object.keys(proxys).forEach(function(context) {
+    var options = proxys[context]
+    if (typeof options === 'string') {
+        options = {
+            target: options,
+            onProxyReq:function(proxyReq, req, res){
+            	console.log(proxyReq)
+            }
+        }
+    }
+    app.use(proxyMiddleware(options.filter || context, options));
+})
 
-app.use(express.static(getPath.shellDirPath + '/dist'));
 
-var url = `http://localhost:${port}/index.html`;
-console.log(`监听地址:${url}\n`)
-var server = app.listen(port);
+app.use(express.static(getProjectPath.shellDirPath + '/dist'));
+
+var uri = `http://localhost:${port}`;
+
+console.log('> Listening at ' + uri + '\n')
+
+var server = app.listen(port)
